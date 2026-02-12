@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from api.routes.v1.router import router as api_router_v1
 from api.routes.v2.router import router as api_router_v2
 from core.db import engine, Base
-from infrastructure.db.models import User, Blog  # Import models to register them
+from infrastructure.db.models import User, Blog, Job  # Import models to register them
 
 app = FastAPI(title="Zanzo Service")
 
