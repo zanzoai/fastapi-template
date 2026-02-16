@@ -31,7 +31,7 @@ class ZanUserRepository:
             zancrew_id=zancrew_id
         )
         self.db.add(zan_user)
-        self.db.commit()
+        self.db.flush()  # get PK without committing; get_db will commit
         self.db.refresh(zan_user)
         return zan_user
 
@@ -57,7 +57,7 @@ class ZanUserRepository:
         if zancrew_id is not None:
             zan_user.zancrew_id = zancrew_id
         
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(zan_user)
         return zan_user
 
@@ -67,6 +67,6 @@ class ZanUserRepository:
             return False
         
         self.db.delete(zan_user)
-        self.db.commit()
+        self.db.flush()
         return True
 
