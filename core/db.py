@@ -1,7 +1,10 @@
 # app/core/db.py
-from sqlalchemy import create_engine
+import logging
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 from core.config import DATABASE_URL
+
+logger = logging.getLogger(__name__)
 
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL is not configured. Please set CONNECTION_STRING in your environment.")
@@ -35,10 +38,20 @@ engine = create_engine(
     pool_size=5,  # Number of connections to maintain
     max_overflow=10,  # Additional connections beyond pool_size
     pool_recycle=3600,  # Recycle connections after 1 hour
-    connect_args=connect_args
+    connect_args=connect_args,
 )
-print(engine)
-print("Engine created successfully")
+
+# Supabase pooler (PgBouncer) in transaction mode: disable prepared statements
+# so each command runs in a single round-trip and isn't tied to a session.
+if "supabase.co" in DATABASE_URL and "pooler" in DATABASE_URL:
+    @event.listens_for(engine, "connect")
+    def _set_prepare_threshold(dbapi_conn, connection_record):
+        try:
+            dbapi_conn.prepare_threshold = 0
+        except AttributeError:
+            pass  # not psycopg2
+
+logger.info("Engine created successfully")
 
 SessionLocal = sessionmaker(
     autocommit=False,
