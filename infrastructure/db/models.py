@@ -125,7 +125,7 @@ class MessageRead(Base):
 class ZanUser(Base):
     __tablename__ = "zan_user"
 
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     email = Column(String, unique=True, nullable=True)
