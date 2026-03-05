@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi import HTTPException
 from api.routes.v1.router import router as api_router_v1
 from api.routes.v2.router import router as api_router_v2
 from core.db import engine, Base
@@ -16,6 +19,52 @@ from infrastructure.db.models import (
 from core.cache import get_redis_client
 
 app = FastAPI(title="Zanzo Service")
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Return validation errors in a consistent, API-friendly format."""
+    errors = []
+    for err in exc.errors():
+        field = ".".join(str(loc) for loc in err.get("loc", []) if loc != "body")
+        msg = err.get("msg", "Validation error")
+        # Extract message from "Value error, <message>" for cleaner output
+        if msg.startswith("Value error, "):
+            msg = msg.replace("Value error, ", "")
+        errors.append({"field": field or "body", "message": msg})
+    return JSONResponse(
+        status_code=422,
+        content={
+            "success": False,
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": errors[0]["message"] if len(errors) == 1 else "Validation failed",
+                "details": errors,
+            },
+        },
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Return HTTP errors in a consistent, API-friendly format."""
+    detail = exc.detail
+    if isinstance(detail, dict):
+        message = detail.get("message", detail.get("error", str(detail)))
+    else:
+        message = str(detail)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": {
+                "code": "HTTP_ERROR",
+                "message": message,
+                "details": detail if isinstance(detail, dict) else None,
+            },
+        },
+    )
+
 
 @app.on_event("startup")
 async def startup_event():
