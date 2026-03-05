@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # --- Participant type: used in DB and API ---
@@ -9,13 +9,12 @@ ParticipantType = Literal["zan_user", "zan_crew"]
 
 
 class ChatRoomResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     job_id: int
     is_read_only: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ChatMessageCreate(BaseModel):
@@ -23,6 +22,7 @@ class ChatMessageCreate(BaseModel):
 
 
 class ChatMessageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     chat_room_id: int
     sender_type: str  # zan_user | zan_crew | system
@@ -30,9 +30,6 @@ class ChatMessageResponse(BaseModel):
     sender_zancrew_id: Optional[int] = None
     content: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ChatMessagesPage(BaseModel):

@@ -1,0 +1,15 @@
+# Ruff configuration for CI
+target-version = "py312"
+line-length = 120
+
+# Focus on errors first; add more rules over time
+select = ["E", "F", "I"]  # pycodestyle errors, pyflakes, isort
+ignore = ["E501"]  # line length (handled by formatter)
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "alembic/versions",
+]

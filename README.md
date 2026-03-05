@@ -87,3 +87,24 @@ alembic current
 ```
 
 For detailed migration guide, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)
+
+## Testing
+
+```bash
+pip install pytest pytest-asyncio httpx
+pytest tests/ -v
+```
+
+See [docs/TESTING_AND_CICD.md](docs/TESTING_AND_CICD.md) for full testing guide.
+
+## CI/CD
+
+GitHub Actions runs on push/PR to `main`, `staging`, and `tes_app`:
+
+| Job | Description |
+|-----|-------------|
+| **Lint** | Ruff (checks code style and errors) |
+| **Test** | Pytest with PostgreSQL 16 service |
+| **Docker** | Builds image (no push) |
+
+See [docs/TESTING_AND_CICD.md](docs/TESTING_AND_CICD.md) for CI/CD details.
