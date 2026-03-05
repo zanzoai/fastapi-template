@@ -3,14 +3,14 @@ from supabase import create_client, Client
 from supabase.lib.client_options import SyncClientOptions
 from supabase_auth.errors import AuthApiError
 import httpx
-from core.config import SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_VERIFY_SSL
+from core.config import SUPABASE_URL, SUPABASE_KEY, SUPABASE_VERIFY_SSL
 from domain.auth.schemas import SendOTPRequest, SendOTPResponse, VerifyOTPRequest, AuthResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 def get_supabase_client() -> Client:
     """Get Supabase client instance with SSL configuration"""
-    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    if not SUPABASE_URL or not SUPABASE_KEY:
         raise HTTPException(
             status_code=500,
             detail="Supabase configuration is missing"
@@ -36,7 +36,7 @@ def get_supabase_client() -> Client:
     )
     
     # Create Supabase client with custom options
-    return create_client(SUPABASE_URL, SUPABASE_ANON_KEY, options=options)
+    return create_client(SUPABASE_URL, SUPABASE_KEY, options=options)
 
 @router.post("/phone/send-otp", response_model=SendOTPResponse)
 async def send_otp(

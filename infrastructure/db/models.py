@@ -129,7 +129,7 @@ class ZanUser(Base):
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     email = Column(String, unique=True, nullable=True)
-    phone = Column(String, nullable=False)
+    phone = Column(String, unique=True, nullable=False)
     address = Column(Text, nullable=True)
     is_zancrew = Column(String, nullable=True, default="false")
     zancrew_id = Column(Integer, nullable=True)

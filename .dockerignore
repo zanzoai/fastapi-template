@@ -1,0 +1,44 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment and secrets (pass via -e or docker-compose env at runtime)
+.env
+.env.*
+!.env.example
+
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation (optional - remove if you want docs in image)
+*.md
+!README.md
+
+# Misc
+.DS_Store
+*.log

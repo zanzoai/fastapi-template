@@ -90,7 +90,11 @@ def update_zan_user(
             data.zancrew_id
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        msg = str(e)
+        # 400 for duplicate phone/email, 404 for not found
+        if "already exists" in msg.lower():
+            raise HTTPException(status_code=400, detail=msg)
+        raise HTTPException(status_code=404, detail=msg)
 
 @router.delete("/{user_id}", status_code=204)
 def delete_zan_user(
