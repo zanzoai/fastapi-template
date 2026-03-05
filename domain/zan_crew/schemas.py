@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import datetime, date
 from typing import Optional
 from domain.zan_user.schemas import ZanUserResponse
@@ -116,8 +116,8 @@ class ZanCrewResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ZanCrewWithUserResponse(BaseModel):
     zancrew_id: int
@@ -155,6 +155,6 @@ class ZanCrewWithUserResponse(BaseModel):
     updated_at: Optional[datetime] = None
     zan_user: Optional[ZanUserResponse] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 

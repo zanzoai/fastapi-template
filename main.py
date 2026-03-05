@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from api.routes.v1.router import router as api_router_v1
 from api.routes.v2.router import router as api_router_v2
 from core.db import engine, Base
@@ -18,7 +19,31 @@ from infrastructure.db.models import (
 )  # Import models to register them
 from core.cache import get_redis_client
 
-app = FastAPI(title="Zanzo Service")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and shutdown events."""
+    # Startup
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created/verified successfully")
+    except Exception as e:
+        print(f"Warning: Could not create database tables: {e}")
+        print("Make sure your CONNECTION_STRING is correct and the database is accessible")
+
+    try:
+        redis_client = get_redis_client()
+        redis_client.ping()
+        print("Redis connection established successfully")
+    except Exception as e:
+        print(f"Warning: Could not connect to Redis: {e}")
+        print("Caching will be disabled. Make sure Redis is running and configured correctly.")
+
+    yield
+    # Shutdown (add cleanup here if needed)
+
+
+app = FastAPI(title="Zanzo Service", lifespan=lifespan)
 
 
 @app.exception_handler(RequestValidationError)
@@ -65,25 +90,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         },
     )
 
-
-@app.on_event("startup")
-async def startup_event():
-    """Create database tables and initialize Redis connection on startup"""
-    try:
-        Base.metadata.create_all(bind=engine)
-        print("Database tables created/verified successfully")
-    except Exception as e:
-        print(f"Warning: Could not create database tables: {e}")
-        print("Make sure your CONNECTION_STRING is correct and the database is accessible")
-    
-    # Initialize Redis connection
-    try:
-        redis_client = get_redis_client()
-        redis_client.ping()
-        print("Redis connection established successfully")
-    except Exception as e:
-        print(f"Warning: Could not connect to Redis: {e}")
-        print("Caching will be disabled. Make sure Redis is running and configured correctly.")
 
 @app.get("/")
 def main():

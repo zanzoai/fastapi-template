@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 from datetime import datetime
 from typing import Optional
 
@@ -36,6 +36,7 @@ class ZanUserUpdate(BaseModel):
         return validate_phone_e164(v)
 
 class ZanUserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     user_id: int
     phone: str
     first_name: Optional[str] = None
@@ -47,6 +48,4 @@ class ZanUserResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
 
