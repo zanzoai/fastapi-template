@@ -1,7 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, field_validator
 from datetime import datetime, date
 from typing import Optional
 from domain.zan_user.schemas import ZanUserResponse
+from core.validators import validate_phone_e164
+
 
 class ZanCrewCreate(BaseModel):
     phone: str
@@ -34,6 +36,12 @@ class ZanCrewCreate(BaseModel):
     face_verified: Optional[str] = None
     selfie_img_url: Optional[str] = None
 
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        return validate_phone_e164(v)
+
+
 class ZanCrewUpdate(BaseModel):
     phone: Optional[str] = None
     pan_id: Optional[str] = None
@@ -64,6 +72,14 @@ class ZanCrewUpdate(BaseModel):
     face_match_score: Optional[float] = None
     face_verified: Optional[str] = None
     selfie_img_url: Optional[str] = None
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        return validate_phone_e164(v)
+
 
 class ZanCrewResponse(BaseModel):
     zancrew_id: int
@@ -100,8 +116,8 @@ class ZanCrewResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ZanCrewWithUserResponse(BaseModel):
     zancrew_id: int
@@ -139,6 +155,6 @@ class ZanCrewWithUserResponse(BaseModel):
     updated_at: Optional[datetime] = None
     zan_user: Optional[ZanUserResponse] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
 

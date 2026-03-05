@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime, date
 from typing import Optional
 
@@ -29,6 +29,7 @@ class JobCreate(BaseModel):
     pickup_longitude: str
 
 class JobUpdate(BaseModel):
+    status: Optional[str] = None  # open | in_progress | closed
     task_title: Optional[str] = None
     polished_task: Optional[str] = None
     location_address: Optional[str] = None
@@ -56,6 +57,7 @@ class JobUpdate(BaseModel):
 class JobResponse(BaseModel):
     job_id: int
     user_id: int
+    status: Optional[str] = None
     task_title: str
     polished_task: str
     location_address: str
@@ -82,5 +84,5 @@ class JobResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+

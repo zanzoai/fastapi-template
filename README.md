@@ -17,6 +17,43 @@
 ### Lock the downloaded packages once installed
 ```pip freeze > requirements.txt```
 
+## Docker
+
+### Build and run with Docker
+
+```bash
+# Build the image
+docker build -t fastapi-template .
+
+# Run with .env file (ensure .env has SUPABASE_URL, SERVICE_ROLE_KEY or SUPABASE_ANON_KEY, DATABASE_URL)
+docker run -p 8000:8000 --env-file .env fastapi-template
+
+# Run with env vars bypassing
+docker run -p 8000:8000 \
+  -e SUPABASE_URL="https://your-project.supabase.co" \
+  -e SERVICE_ROLE_KEY="your-service-role-key" \
+  -e REDIS_HOST="host.docker.internal" \
+  fastapi-template
+```
+
+### Run with Docker Compose (includes Redis)
+
+```bash
+docker compose up -d
+```
+
+API available at http://localhost:8000. Redis runs as a separate service; the API connects to it automatically.
+
+### Environment variables for Docker
+
+Required in `.env`:
+- `SUPABASE_URL` – Supabase project URL
+- `SERVICE_ROLE_KEY` or `SUPABASE_ANON_KEY` – Supabase API key
+- `DATABASE_URL` – PostgreSQL connection string
+
+Optional (for Redis when running standalone):
+- `REDIS_HOST=host.docker.internal` – Use when running `docker run` without compose (macOS/Windows)
+
 ## Database Migrations
 
 This project uses Alembic for database migrations. 
@@ -50,3 +87,24 @@ alembic current
 ```
 
 For detailed migration guide, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)
+
+## Testing
+
+```bash
+pip install pytest pytest-asyncio httpx
+pytest tests/ -v
+```
+
+See [docs/TESTING_AND_CICD.md](docs/TESTING_AND_CICD.md) for full testing guide.
+
+## CI/CD
+
+GitHub Actions runs on push/PR to `main`, `staging`, and `tes_app`:
+
+| Job | Description |
+|-----|-------------|
+| **Lint** | Ruff (checks code style and errors) |
+| **Test** | Pytest with PostgreSQL 16 service |
+| **Docker** | Builds image (no push) |
+
+See [docs/TESTING_AND_CICD.md](docs/TESTING_AND_CICD.md) for CI/CD details.

@@ -59,7 +59,7 @@ class JobRepository:
                actions: str = None, tags: str = None, bucket: str = None,
                payment_mode: str = None, payment_status: str = None, currency: str = None,
                chat_room_id: str = None, pickup_adress: str = None,
-               pickup_latitude: str = None, pickup_longitude: str = None):
+               pickup_latitude: str = None, pickup_longitude: str = None, status: str = None):
         job = self.get_by_id(job_id)
         if not job:
             return None
@@ -110,7 +110,9 @@ class JobRepository:
             job.pickup_latitude = pickup_latitude
         if pickup_longitude is not None:
             job.pickup_longitude = pickup_longitude
-        
+        if status is not None:
+            job.status = status
+
         self.db.commit()
         self.db.refresh(job)
         return job

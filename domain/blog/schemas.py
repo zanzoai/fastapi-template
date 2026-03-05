@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -12,13 +12,11 @@ class BlogUpdate(BaseModel):
     content: Optional[str] = None
 
 class BlogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
     content: str
     author_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 

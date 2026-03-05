@@ -1,4 +1,8 @@
+import logging
 from infrastructure.db.models import ZanUser
+
+logger = logging.getLogger(__name__)
+
 
 class ZanUserRepository:
     def __init__(self, db):
@@ -33,6 +37,7 @@ class ZanUserRepository:
         self.db.add(zan_user)
         self.db.commit()
         self.db.refresh(zan_user)
+        logger.info("ZanUser created: user_id=%s", zan_user.user_id)
         return zan_user
 
     def update(self, user_id: int, first_name: str = None, last_name: str = None, 
@@ -59,6 +64,7 @@ class ZanUserRepository:
         
         self.db.commit()
         self.db.refresh(zan_user)
+        logger.info("ZanUser updated: user_id=%s", user_id)
         return zan_user
 
     def delete(self, user_id: int):
@@ -68,5 +74,6 @@ class ZanUserRepository:
         
         self.db.delete(zan_user)
         self.db.commit()
+        logger.info("ZanUser deleted: user_id=%s", user_id)
         return True
 

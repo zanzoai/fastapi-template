@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Boolean, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from core.db import Base
@@ -51,7 +51,8 @@ class Job(Base):
     payment_mode = Column(String, nullable=False)
     payment_status = Column(String, nullable=False)
     currency = Column(String, nullable=False)
-    chat_room_id = Column(String, nullable=True)
+    chat_room_id = Column(String, nullable=True)  # Denormalized; source of truth is chat_rooms.job_id
+    status = Column(String(32), nullable=True, server_default="open")  # open | in_progress | closed
     pickup_adress = Column(Text, nullable=False)
     pickup_latitude = Column(String, nullable=False)
     pickup_longitude = Column(String, nullable=False)
@@ -60,15 +61,75 @@ class Job(Base):
     
     # Relationship to zan_user
     zan_user = relationship("ZanUser", back_populates="jobs")
+    # One chat room per job (created when job is assigned)
+    chat_room = relationship("ChatRoom", back_populates="job", uselist=False, foreign_keys="ChatRoom.job_id")
+
+
+class ChatRoom(Base):
+    __tablename__ = "chat_rooms"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    job_id = Column(Integer, ForeignKey("jobs.job_id", ondelete="CASCADE"), nullable=False)
+    is_read_only = Column(Boolean, nullable=False, server_default="false")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    job = relationship("Job", back_populates="chat_room")
+    participants = relationship("ChatParticipant", back_populates="chat_room", cascade="all, delete-orphan")
+    messages = relationship("ChatMessage", back_populates="chat_room", cascade="all, delete-orphan")
+
+
+class ChatParticipant(Base):
+    __tablename__ = "chat_participants"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    chat_room_id = Column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"), nullable=False)
+    participant_type = Column(String(16), nullable=False)  # zan_user | zan_crew
+    zan_user_id = Column(Integer, ForeignKey("zan_user.user_id", ondelete="CASCADE"), nullable=True)
+    zancrew_id = Column(Integer, ForeignKey("zan_crew.zancrew_id", ondelete="CASCADE"), nullable=True)
+    joined_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    chat_room = relationship("ChatRoom", back_populates="participants")
+    zan_user = relationship("ZanUser", foreign_keys=[zan_user_id])
+    zan_crew = relationship("ZanCrew", foreign_keys=[zancrew_id])
+    message_reads = relationship("MessageRead", back_populates="participant", cascade="all, delete-orphan")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    chat_room_id = Column(Integer, ForeignKey("chat_rooms.id", ondelete="CASCADE"), nullable=False)
+    sender_type = Column(String(16), nullable=False)  # zan_user | zan_crew | system
+    sender_zan_user_id = Column(Integer, nullable=True)
+    sender_zancrew_id = Column(Integer, nullable=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    chat_room = relationship("ChatRoom", back_populates="messages")
+    reads = relationship("MessageRead", back_populates="message", cascade="all, delete-orphan")
+
+
+class MessageRead(Base):
+    __tablename__ = "message_reads"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    message_id = Column(BigInteger, ForeignKey("chat_messages.id", ondelete="CASCADE"), nullable=False)
+    participant_id = Column(Integer, ForeignKey("chat_participants.id", ondelete="CASCADE"), nullable=False)
+    read_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    message = relationship("ChatMessage", back_populates="reads")
+    participant = relationship("ChatParticipant", back_populates="message_reads")
+
 
 class ZanUser(Base):
     __tablename__ = "zan_user"
 
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     email = Column(String, unique=True, nullable=True)
-    phone = Column(String, nullable=False)
+    phone = Column(String, unique=True, nullable=False)
     address = Column(Text, nullable=True)
     is_zancrew = Column(String, nullable=True, default="false")
     zancrew_id = Column(Integer, nullable=True)

@@ -110,7 +110,8 @@ def update_job(
             data.chat_room_id,
             data.pickup_adress,
             data.pickup_latitude,
-            data.pickup_longitude
+            data.pickup_longitude,
+            status=data.status,
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
